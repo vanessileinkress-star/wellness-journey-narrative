@@ -22,6 +22,9 @@ import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Kettlebell } from "./Kettlebell";
 import {
+  assessSleep,
+  assessSteps,
+  assessTraining,
   computeAchievements,
   computeStats,
   DAYS,
@@ -32,6 +35,7 @@ import {
   MONTHS,
   type Day,
 } from "./data";
+
 
 const ACCENT = "hsl(210 90% 62%)";
 const ACCENT_2 = "hsl(180 70% 60%)";
@@ -243,6 +247,8 @@ function ChapterBlock({
   story,
   stats,
   chart,
+  mood = "good",
+  who,
 }: {
   index: string;
   kicker: string;
@@ -250,15 +256,22 @@ function ChapterBlock({
   story: string;
   stats: { label: string; value: string; accent?: string }[];
   chart: React.ReactNode;
+  mood?: "good" | "tip";
+  who?: { label: string; value: string; verdict: string };
 }) {
   return (
     <section className="border-t border-white/5 py-14 first:border-t-0">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 lg:grid-cols-[380px_1fr] lg:gap-16">
         <div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.25em] text-primary">
-            {index} · {kicker}
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.25em] text-primary">
+                {index} · {kicker}
+              </div>
+              <h2 className="mt-3 font-display text-3xl font-bold leading-tight lg:text-4xl">{title}</h2>
+            </div>
+            <Kettlebell mood={mood} size={72} className="-mt-2 shrink-0 drop-shadow-[0_6px_20px_rgba(122,183,255,0.25)]" />
           </div>
-          <h2 className="mt-3 font-display text-3xl font-bold leading-tight lg:text-4xl">{title}</h2>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{story}</p>
           <div className="mt-6 space-y-3">
             {stats.map((s) => (
@@ -269,6 +282,16 @@ function ChapterBlock({
                 </div>
               </div>
             ))}
+            {who && (
+              <div className="mt-4 rounded-lg border border-white/10 bg-background/40 p-4">
+                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em]" style={{ color: mood === "good" ? ACCENT_3 : "hsl(0 80% 68%)" }}>
+                  <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: mood === "good" ? ACCENT_3 : "hsl(0 80% 68%)" }} />
+                  {who.label}
+                </div>
+                <div className="mt-1 text-sm text-foreground">{who.value}</div>
+                <div className="mt-2 text-xs text-muted-foreground">Dein Ergebnis: <span className="font-semibold text-foreground">{who.verdict}</span></div>
+              </div>
+            )}
           </div>
         </div>
         <Card className="border-white/10 bg-card/60 p-4 lg:p-6">{chart}</Card>
@@ -276,6 +299,7 @@ function ChapterBlock({
     </section>
   );
 }
+
 
 // ---------- Guided Tour ----------
 
@@ -343,7 +367,15 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
   const chapter = TOUR[step];
   const days = daysInMonth(chapter.monthKey);
   const stats = computeStats(days);
+  const aSleep = assessSleep(days);
+  const aSteps = assessSteps(days);
+  const aTraining = assessTraining(days);
+  const overallMood: "good" | "tip" = [aSleep, aSteps, aTraining].every((a) => a.mood === "good") ? "good" : "tip";
+  const motText = overallMood === "good"
+    ? "Top-Phase: Schlaf, Schritte und Training – alles im grünen Bereich. Genau so soll es sein."
+    : "Solide Basis mit klaren Baustellen. Ein bis zwei gezielte Anpassungen und die Kurve zeigt nach oben.";
   const progress = ((step + 1) / TOUR.length) * 100;
+
 
   return (
     <div>
@@ -376,17 +408,30 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
 
       <div className="mx-auto max-w-6xl px-4">
         <Card className="border-primary/30 bg-primary/5 p-6">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.25em] text-primary">{chapter.label}</div>
-          <h2 className="mt-2 font-display text-3xl font-bold lg:text-4xl">{chapter.headline}</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">{chapter.narrative}</p>
+          <div className="flex items-start gap-4">
+            <Kettlebell mood={overallMood} size={64} className="shrink-0" />
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.25em] text-primary">{chapter.label}</div>
+              <h2 className="mt-2 font-display text-3xl font-bold lg:text-4xl">{chapter.headline}</h2>
+              <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">{chapter.narrative}</p>
+              <div className="mt-4 rounded-md border-l-2 border-primary bg-background/40 px-3 py-2 text-sm italic text-foreground/90">
+                <span className="mr-2 text-[10px] font-semibold not-italic uppercase tracking-widest text-primary">Deine Phase in einem Satz</span>
+                <br />
+                {motText}
+              </div>
+            </div>
+          </div>
         </Card>
       </div>
 
       <ChapterBlock
         index="01"
         kicker="Schlaf & Regeneration"
-        title="Erholung als Fundament"
-        story={`Ø Schlafdauer ${formatSleep(stats.avgSleepMin)} pro Nacht – Sleep-Score im Mittel ${stats.avgSleepScore ?? "–"}. Klick auf einen Balken für den Tag im Detail.`}
+        title={aSleep.headline}
+        story={aSleep.story}
+        mood={aSleep.mood}
+        who={{ label: aSleep.whoLabel, value: aSleep.whoValue, verdict: aSleep.verdict }}
+
         stats={[
           { label: "Ø Schlafdauer", value: formatSleep(stats.avgSleepMin) },
           { label: "Ø Sleep-Score", value: stats.avgSleepScore ? `${stats.avgSleepScore}/100` : "–", accent: ACCENT_2 },
@@ -398,8 +443,10 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
       <ChapterBlock
         index="02"
         kicker="Alltag & Bewegung"
-        title="Jeder Tag zählt"
-        story={`Insgesamt ${stats.totalSteps.toLocaleString("de-DE")} Schritte im ${chapter.label.split("·")[0].trim()} – im Schnitt ${stats.avgSteps.toLocaleString("de-DE")} pro Tag. Die rote Linie markiert das WHO-Ziel.`}
+        title={aSteps.headline}
+        story={aSteps.story}
+        mood={aSteps.mood}
+        who={{ label: aSteps.whoLabel, value: aSteps.whoValue, verdict: aSteps.verdict }}
         stats={[
           { label: "Ø Schritte / Tag", value: stats.avgSteps.toLocaleString("de-DE") },
           { label: "Bester Tag", value: stats.bestStepDay ? `${stats.bestStepDay.steps.toLocaleString("de-DE")} · ${formatDateShort(stats.bestStepDay.date)}` : "–", accent: ACCENT_2 },
@@ -411,8 +458,10 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
       <ChapterBlock
         index="03"
         kicker="Training & Kraft"
-        title="Bewusste Belastung"
-        story={`${stats.workoutCount} Trainings-Sessions, zusammen ${stats.trainingMin} Minuten. Aktive Tage: ${stats.activeDays} von ${stats.daysCount}. Klick einen Balken an, um alle Sessions des Tages zu sehen.`}
+        title={aTraining.headline}
+        story={aTraining.story}
+        mood={aTraining.mood}
+        who={{ label: aTraining.whoLabel, value: aTraining.whoValue, verdict: aTraining.verdict }}
         stats={[
           { label: "Sessions", value: `${stats.workoutCount}` },
           { label: "Trainingszeit", value: `${Math.round(stats.trainingMin / 60)} h ${stats.trainingMin % 60} min`, accent: ACCENT_2 },
@@ -420,6 +469,7 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
         ]}
         chart={<TrainingChart days={days} onSelect={onSelectDay} />}
       />
+
 
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-8">
         <Button variant="outline" disabled={step === 0} onClick={() => setStep((s) => Math.max(0, s - 1))}>
@@ -446,6 +496,9 @@ function ExplorerView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
   const weekIndex = Math.min(week[0], maxWeek);
   const weekDays = monthDays.slice((weekIndex - 1) * 7, weekIndex * 7);
   const stats = computeStats(weekDays);
+  const aSleep = assessSleep(weekDays);
+  const aSteps = assessSteps(weekDays);
+  const aTraining = assessTraining(weekDays);
   const first = weekDays[0];
   const last = weekDays[weekDays.length - 1];
 
@@ -486,8 +539,10 @@ function ExplorerView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
           <ChapterBlock
             index="01"
             kicker="Schlaf & Regeneration"
-            title="Deine Nächte in dieser Woche"
-            story="Balken zeigen die Phasen jeder Nacht. Klick eine Nacht an, um alle Details zu sehen."
+            title={aSleep.headline}
+            story={aSleep.story}
+            mood={aSleep.mood}
+            who={{ label: aSleep.whoLabel, value: aSleep.whoValue, verdict: aSleep.verdict }}
             stats={[
               { label: "Ø Dauer", value: formatSleep(stats.avgSleepMin) },
               { label: "Ø Score", value: stats.avgSleepScore ? `${stats.avgSleepScore}/100` : "–", accent: ACCENT_2 },
@@ -498,8 +553,10 @@ function ExplorerView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
           <ChapterBlock
             index="02"
             kicker="Alltag & Bewegung"
-            title="Schritte, Distanz, WHO-Ziel"
-            story="Die Fläche zeigt deinen täglichen Bewegungsumfang. Rote Linie: WHO-Empfehlung 10.000 Schritte."
+            title={aSteps.headline}
+            story={aSteps.story}
+            mood={aSteps.mood}
+            who={{ label: aSteps.whoLabel, value: aSteps.whoValue, verdict: aSteps.verdict }}
             stats={[
               { label: "Ø / Tag", value: stats.avgSteps.toLocaleString("de-DE") },
               { label: "Summe", value: stats.totalSteps.toLocaleString("de-DE"), accent: ACCENT_2 },
@@ -510,8 +567,10 @@ function ExplorerView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
           <ChapterBlock
             index="03"
             kicker="Training"
-            title="Deine Sessions dieser Woche"
-            story="Jeder Balken ist ein Trainingstag. Klick, um Sessions, Kalorien und Puls anzusehen."
+            title={aTraining.headline}
+            story={aTraining.story}
+            mood={aTraining.mood}
+            who={{ label: aTraining.whoLabel, value: aTraining.whoValue, verdict: aTraining.verdict }}
             stats={[
               { label: "Sessions", value: `${stats.workoutCount}` },
               { label: "Minuten", value: `${stats.trainingMin}`, accent: ACCENT_2 },
@@ -519,6 +578,7 @@ function ExplorerView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
             ]}
             chart={<TrainingChart days={weekDays} onSelect={onSelectDay} />}
           />
+
         </TabsContent>
       </Tabs>
     </div>
