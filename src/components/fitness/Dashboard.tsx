@@ -367,7 +367,15 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
   const chapter = TOUR[step];
   const days = daysInMonth(chapter.monthKey);
   const stats = computeStats(days);
+  const aSleep = assessSleep(days);
+  const aSteps = assessSteps(days);
+  const aTraining = assessTraining(days);
+  const overallMood: "good" | "tip" = [aSleep, aSteps, aTraining].every((a) => a.mood === "good") ? "good" : "tip";
+  const motText = overallMood === "good"
+    ? "Top-Phase: Schlaf, Schritte und Training – alles im grünen Bereich. Genau so soll es sein."
+    : "Solide Basis mit klaren Baustellen. Ein bis zwei gezielte Anpassungen und die Kurve zeigt nach oben.";
   const progress = ((step + 1) / TOUR.length) * 100;
+
 
   return (
     <div>
