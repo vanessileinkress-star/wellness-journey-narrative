@@ -408,17 +408,30 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
 
       <div className="mx-auto max-w-6xl px-4">
         <Card className="border-primary/30 bg-primary/5 p-6">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.25em] text-primary">{chapter.label}</div>
-          <h2 className="mt-2 font-display text-3xl font-bold lg:text-4xl">{chapter.headline}</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">{chapter.narrative}</p>
+          <div className="flex items-start gap-4">
+            <Kettlebell mood={overallMood} size={64} className="shrink-0" />
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.25em] text-primary">{chapter.label}</div>
+              <h2 className="mt-2 font-display text-3xl font-bold lg:text-4xl">{chapter.headline}</h2>
+              <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">{chapter.narrative}</p>
+              <div className="mt-4 rounded-md border-l-2 border-primary bg-background/40 px-3 py-2 text-sm italic text-foreground/90">
+                <span className="mr-2 text-[10px] font-semibold not-italic uppercase tracking-widest text-primary">Deine Phase in einem Satz</span>
+                <br />
+                {motText}
+              </div>
+            </div>
+          </div>
         </Card>
       </div>
 
       <ChapterBlock
         index="01"
         kicker="Schlaf & Regeneration"
-        title="Erholung als Fundament"
-        story={`Ø Schlafdauer ${formatSleep(stats.avgSleepMin)} pro Nacht – Sleep-Score im Mittel ${stats.avgSleepScore ?? "–"}. Klick auf einen Balken für den Tag im Detail.`}
+        title={aSleep.headline}
+        story={aSleep.story}
+        mood={aSleep.mood}
+        who={{ label: aSleep.whoLabel, value: aSleep.whoValue, verdict: aSleep.verdict }}
+
         stats={[
           { label: "Ø Schlafdauer", value: formatSleep(stats.avgSleepMin) },
           { label: "Ø Sleep-Score", value: stats.avgSleepScore ? `${stats.avgSleepScore}/100` : "–", accent: ACCENT_2 },
