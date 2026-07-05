@@ -115,6 +115,78 @@ export function formatDateLong(iso: string): string {
   return d.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 }
 
+// ---------- WHO-Bewertungen ----------
+// Grundlage: WHO / DGE Empfehlungen:
+// - Schlaf: 7–9 h pro Nacht (Erwachsene)
+// - Alltag: 10.000 Schritte pro Tag als Richtwert der WHO
+// - Training: 150 min moderate ODER 75 min intensive Aktivität pro Woche,
+//   plus 2× Krafttraining wöchentlich
+
+export type Mood = "good" | "tip";
+
+export interface Assessment {
+  mood: Mood;
+  headline: string;
+  story: string;
+  whoLabel: string;
+  whoValue: string;
+  verdict: string;
+}
+
+export function assessSleep(days: Day[]): Assessment {
+  const stats = computeStats(days);
+  const avgH = stats.avgSleepMin / 60;
+  const inZone = days.filter((d) => d.sleepMin >= 7 * 60 && d.sleepMin <= 9 * 60).length;
+  const good = avgH >= 7 && avgH <= 9.5;
+  return {
+    mood: good ? "good" : "tip",
+    headline: good ? "Erholung auf höchstem Niveau" : "Der Schlaf darf noch mehr Raum bekommen",
+    story: good
+      ? `Ø ${formatSleep(stats.avgSleepMin)} pro Nacht – dein Körper konnte sich regenerieren und ist bereit für neue Herausforderungen. Sleep-Score im Schnitt bei ${stats.avgSleepScore ?? "–"}.`
+      : `Ø ${formatSleep(stats.avgSleepMin)} pro Nacht – das liegt unter der WHO-Empfehlung. Ein paar Nächte mehr im 7–9-h-Fenster würden Regeneration und Leistung spürbar heben.`,
+    whoLabel: "WHO-Empfehlung Schlaf",
+    whoValue: "7–9 Stunden pro Nacht (Erwachsene)",
+    verdict: `${inZone} von ${days.length} Nächten in der grünen Zone`,
+  };
+}
+
+export function assessSteps(days: Day[]): Assessment {
+  const stats = computeStats(days);
+  const daysOver = days.filter((d) => d.steps >= 10000).length;
+  const share = days.length ? daysOver / days.length : 0;
+  const good = stats.avgSteps >= 8000 && share >= 0.4;
+  return {
+    mood: good ? "good" : "tip",
+    headline: good ? "Jeden Tag in Bewegung" : "Mehr Alltagsbewegung lohnt sich",
+    story: good
+      ? `Insgesamt ${stats.totalSteps.toLocaleString("de-DE")} Schritte – im Schnitt ${stats.avgSteps.toLocaleString("de-DE")} pro Tag. An ${daysOver} von ${days.length} Tagen das WHO-Ziel geknackt.`
+      : `Ø ${stats.avgSteps.toLocaleString("de-DE")} Schritte pro Tag. Das WHO-Ziel wurde an ${daysOver} von ${days.length} Tagen erreicht – kleine Extra-Runden im Alltag würden hier viel bewirken.`,
+    whoLabel: "WHO-Empfehlung Alltag",
+    whoValue: "10.000 Schritte pro Tag (rote Linie im Chart)",
+    verdict: `${daysOver} von ${days.length} Tagen über 10.000 Schritten (${Math.round(share * 100)} %)`,
+  };
+}
+
+export function assessTraining(days: Day[]): Assessment {
+  const stats = computeStats(days);
+  // Woche = 7 Tage. Wieviele Trainings-Minuten pro Woche im Schnitt?
+  const weeks = days.length / 7;
+  const minPerWeek = weeks > 0 ? Math.round(stats.trainingMin / weeks) : 0;
+  const good = minPerWeek >= 150;
+  return {
+    mood: good ? "good" : "tip",
+    headline: good ? "Konstant, bewusst, wirksam" : "Ein bisschen mehr Struktur hilft",
+    story: good
+      ? `${stats.workoutCount} Sessions in ${days.length} Tagen – zusammen ${stats.trainingMin} min. Das entspricht ${minPerWeek} min pro Woche und übertrifft die WHO-Empfehlung.`
+      : `${stats.workoutCount} Sessions, zusammen ${stats.trainingMin} min. Umgerechnet ${minPerWeek} min pro Woche – die WHO empfiehlt 150 min moderat oder 75 min intensiv. Ein bis zwei zusätzliche Einheiten machen den Unterschied.`,
+    whoLabel: "WHO-Empfehlung Training",
+    whoValue: "150 min moderat oder 75 min intensiv pro Woche + 2× Kraft",
+    verdict: `${minPerWeek} min / Woche · ${stats.activeDays} aktive Tage von ${stats.daysCount}`,
+  };
+}
+
+
+
 export function computeAchievements(days: Day[]) {
   const stats = computeStats(days);
   const list: { icon: string; title: string; desc: string; unlocked: boolean }[] = [];
