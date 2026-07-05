@@ -443,8 +443,10 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
       <ChapterBlock
         index="02"
         kicker="Alltag & Bewegung"
-        title="Jeder Tag zählt"
-        story={`Insgesamt ${stats.totalSteps.toLocaleString("de-DE")} Schritte im ${chapter.label.split("·")[0].trim()} – im Schnitt ${stats.avgSteps.toLocaleString("de-DE")} pro Tag. Die rote Linie markiert das WHO-Ziel.`}
+        title={aSteps.headline}
+        story={aSteps.story}
+        mood={aSteps.mood}
+        who={{ label: aSteps.whoLabel, value: aSteps.whoValue, verdict: aSteps.verdict }}
         stats={[
           { label: "Ø Schritte / Tag", value: stats.avgSteps.toLocaleString("de-DE") },
           { label: "Bester Tag", value: stats.bestStepDay ? `${stats.bestStepDay.steps.toLocaleString("de-DE")} · ${formatDateShort(stats.bestStepDay.date)}` : "–", accent: ACCENT_2 },
@@ -456,8 +458,10 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
       <ChapterBlock
         index="03"
         kicker="Training & Kraft"
-        title="Bewusste Belastung"
-        story={`${stats.workoutCount} Trainings-Sessions, zusammen ${stats.trainingMin} Minuten. Aktive Tage: ${stats.activeDays} von ${stats.daysCount}. Klick einen Balken an, um alle Sessions des Tages zu sehen.`}
+        title={aTraining.headline}
+        story={aTraining.story}
+        mood={aTraining.mood}
+        who={{ label: aTraining.whoLabel, value: aTraining.whoValue, verdict: aTraining.verdict }}
         stats={[
           { label: "Sessions", value: `${stats.workoutCount}` },
           { label: "Trainingszeit", value: `${Math.round(stats.trainingMin / 60)} h ${stats.trainingMin % 60} min`, accent: ACCENT_2 },
@@ -465,6 +469,7 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
         ]}
         chart={<TrainingChart days={days} onSelect={onSelectDay} />}
       />
+
 
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-8">
         <Button variant="outline" disabled={step === 0} onClick={() => setStep((s) => Math.max(0, s - 1))}>
