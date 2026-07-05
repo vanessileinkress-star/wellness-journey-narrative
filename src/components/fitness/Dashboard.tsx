@@ -496,6 +496,9 @@ function ExplorerView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
   const weekIndex = Math.min(week[0], maxWeek);
   const weekDays = monthDays.slice((weekIndex - 1) * 7, weekIndex * 7);
   const stats = computeStats(weekDays);
+  const aSleep = assessSleep(weekDays);
+  const aSteps = assessSteps(weekDays);
+  const aTraining = assessTraining(weekDays);
   const first = weekDays[0];
   const last = weekDays[weekDays.length - 1];
 
@@ -536,8 +539,10 @@ function ExplorerView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
           <ChapterBlock
             index="01"
             kicker="Schlaf & Regeneration"
-            title="Deine Nächte in dieser Woche"
-            story="Balken zeigen die Phasen jeder Nacht. Klick eine Nacht an, um alle Details zu sehen."
+            title={aSleep.headline}
+            story={aSleep.story}
+            mood={aSleep.mood}
+            who={{ label: aSleep.whoLabel, value: aSleep.whoValue, verdict: aSleep.verdict }}
             stats={[
               { label: "Ø Dauer", value: formatSleep(stats.avgSleepMin) },
               { label: "Ø Score", value: stats.avgSleepScore ? `${stats.avgSleepScore}/100` : "–", accent: ACCENT_2 },
@@ -548,8 +553,10 @@ function ExplorerView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
           <ChapterBlock
             index="02"
             kicker="Alltag & Bewegung"
-            title="Schritte, Distanz, WHO-Ziel"
-            story="Die Fläche zeigt deinen täglichen Bewegungsumfang. Rote Linie: WHO-Empfehlung 10.000 Schritte."
+            title={aSteps.headline}
+            story={aSteps.story}
+            mood={aSteps.mood}
+            who={{ label: aSteps.whoLabel, value: aSteps.whoValue, verdict: aSteps.verdict }}
             stats={[
               { label: "Ø / Tag", value: stats.avgSteps.toLocaleString("de-DE") },
               { label: "Summe", value: stats.totalSteps.toLocaleString("de-DE"), accent: ACCENT_2 },
@@ -560,8 +567,10 @@ function ExplorerView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
           <ChapterBlock
             index="03"
             kicker="Training"
-            title="Deine Sessions dieser Woche"
-            story="Jeder Balken ist ein Trainingstag. Klick, um Sessions, Kalorien und Puls anzusehen."
+            title={aTraining.headline}
+            story={aTraining.story}
+            mood={aTraining.mood}
+            who={{ label: aTraining.whoLabel, value: aTraining.whoValue, verdict: aTraining.verdict }}
             stats={[
               { label: "Sessions", value: `${stats.workoutCount}` },
               { label: "Minuten", value: `${stats.trainingMin}`, accent: ACCENT_2 },
@@ -569,6 +578,7 @@ function ExplorerView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
             ]}
             chart={<TrainingChart days={weekDays} onSelect={onSelectDay} />}
           />
+
         </TabsContent>
       </Tabs>
     </div>
