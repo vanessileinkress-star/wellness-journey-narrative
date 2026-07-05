@@ -243,6 +243,8 @@ function ChapterBlock({
   story,
   stats,
   chart,
+  mood = "good",
+  who,
 }: {
   index: string;
   kicker: string;
@@ -250,15 +252,22 @@ function ChapterBlock({
   story: string;
   stats: { label: string; value: string; accent?: string }[];
   chart: React.ReactNode;
+  mood?: "good" | "tip";
+  who?: { label: string; value: string; verdict: string };
 }) {
   return (
     <section className="border-t border-white/5 py-14 first:border-t-0">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 lg:grid-cols-[380px_1fr] lg:gap-16">
         <div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.25em] text-primary">
-            {index} · {kicker}
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.25em] text-primary">
+                {index} · {kicker}
+              </div>
+              <h2 className="mt-3 font-display text-3xl font-bold leading-tight lg:text-4xl">{title}</h2>
+            </div>
+            <Kettlebell mood={mood} size={72} className="-mt-2 shrink-0 drop-shadow-[0_6px_20px_rgba(122,183,255,0.25)]" />
           </div>
-          <h2 className="mt-3 font-display text-3xl font-bold leading-tight lg:text-4xl">{title}</h2>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{story}</p>
           <div className="mt-6 space-y-3">
             {stats.map((s) => (
@@ -269,6 +278,16 @@ function ChapterBlock({
                 </div>
               </div>
             ))}
+            {who && (
+              <div className="mt-4 rounded-lg border border-white/10 bg-background/40 p-4">
+                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em]" style={{ color: mood === "good" ? ACCENT_3 : "hsl(0 80% 68%)" }}>
+                  <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: mood === "good" ? ACCENT_3 : "hsl(0 80% 68%)" }} />
+                  {who.label}
+                </div>
+                <div className="mt-1 text-sm text-foreground">{who.value}</div>
+                <div className="mt-2 text-xs text-muted-foreground">Dein Ergebnis: <span className="font-semibold text-foreground">{who.verdict}</span></div>
+              </div>
+            )}
           </div>
         </div>
         <Card className="border-white/10 bg-card/60 p-4 lg:p-6">{chart}</Card>
@@ -276,6 +295,7 @@ function ChapterBlock({
     </section>
   );
 }
+
 
 // ---------- Guided Tour ----------
 
