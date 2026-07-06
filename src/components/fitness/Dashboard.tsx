@@ -518,13 +518,14 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
 
 
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-8">
-        <Button variant="outline" disabled={step === 0} onClick={() => setStep((s) => Math.max(0, s - 1))}>
+        <Button variant="outline" disabled={step === 0} onClick={() => goToStep(Math.max(0, step - 1))}>
           ← Zurück
         </Button>
         <div className="text-sm text-muted-foreground">
           {step === TOUR.length - 1 ? "Ende der geführten Tour – wechsle in den Explorer, um selbst zu stöbern." : "Weiter in der Story"}
         </div>
-        <Button disabled={step === TOUR.length - 1} onClick={() => setStep((s) => Math.min(TOUR.length - 1, s + 1))}>
+        <Button disabled={step === TOUR.length - 1} onClick={() => goToStep(Math.min(TOUR.length - 1, step + 1))}>
+
           Weiter →
         </Button>
       </div>
