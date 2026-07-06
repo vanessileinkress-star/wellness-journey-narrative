@@ -846,9 +846,48 @@ export function Dashboard() {
 
       <Achievements />
 
+      {/* DSGVO */}
+      <section className="mx-auto max-w-6xl px-4 pb-16">
+        <Card className="border-primary/20 bg-primary/5 p-6 lg:p-8">
+          <div className="grid gap-6 lg:grid-cols-[1fr_2fr] lg:items-start">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.25em] text-primary">Datenschutz · DSGVO</div>
+              <h2 className="mt-2 font-display text-2xl font-bold">Deine Daten. Deine Kontrolle.</h2>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Diese Auswertung entsteht im Rahmen der Prüfungsleistung an der THWS Würzburg.
+                Alle Daten stammen aus Vanessas eigenem Garmin-Tracker – kein Fremd-Tracking, keine Weitergabe.
+              </p>
+            </div>
+            <ul className="space-y-3 text-sm">
+              <li className="flex gap-3">
+                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                <span><span className="font-semibold text-foreground">Zweckbindung (Art. 5 DSGVO):</span> Die Daten werden ausschließlich für die Visualisierung im Rahmen dieses Studienprojekts verwendet.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                <span><span className="font-semibold text-foreground">Datenminimierung:</span> Es werden nur aggregierte Fitness- und Gesundheitswerte verarbeitet – keine Namen, Adressen oder Kontaktdaten Dritter.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                <span><span className="font-semibold text-foreground">Einwilligung:</span> Die Verarbeitung erfolgt auf Basis meiner eigenen Einwilligung als betroffene Person (Art. 6 Abs. 1 lit. a).</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                <span><span className="font-semibold text-foreground">Keine Weitergabe:</span> Die Daten werden nicht an Dritte übermittelt und nicht für Werbezwecke genutzt.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                <span><span className="font-semibold text-foreground">Löschung:</span> Nach Abschluss und Bewertung des Moduls können alle Daten auf Wunsch vollständig entfernt werden (Art. 17 DSGVO).</span>
+              </li>
+            </ul>
+          </div>
+        </Card>
+      </section>
+
       <footer className="border-t border-white/5 py-8 text-center text-xs text-muted-foreground">
         THWS Würzburg · Medienmanagement · Modul Interaktive Medien · Datenauswertung Vanessa Kressar
       </footer>
+
 
       <DayDetail day={dayDetail} onClose={() => setDayDetail(null)} />
     </main>
