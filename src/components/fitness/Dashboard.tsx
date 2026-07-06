@@ -1,4 +1,7 @@
 import { useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchFitnessDays } from "@/lib/supabaseFitness";
+
 import {
   Area,
   AreaChart,
@@ -37,8 +40,26 @@ import {
   formatDateShort,
   formatSleep,
   MONTHS,
+  setDays,
   type Day,
 } from "./data";
+
+// Läd Daten aus Vanessas Supabase-Projekt; fällt zurück auf gebündeltes JSON.
+function useFitnessSource() {
+  return useQuery({
+    queryKey: ["fitness_days"],
+    queryFn: async () => {
+      const remote = await fetchFitnessDays();
+      if (remote && remote.length > 0) {
+        setDays(remote);
+        return { source: "supabase" as const, count: remote.length };
+      }
+      return { source: "local" as const, count: DAYS.length };
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
 
 
 
@@ -776,8 +797,11 @@ function Achievements() {
 export function Dashboard() {
   const [mode, setMode] = useState<"tour" | "explorer" | "compare">("tour");
   const [dayDetail, setDayDetail] = useState<Day | null>(null);
-  const overallStats = useMemo(() => computeStats(DAYS), []);
+  const { data: source } = useFitnessSource();
+  const overallStats = useMemo(() => computeStats(DAYS), [source]);
   const last = DAYS[DAYS.length - 1];
+
+
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -833,7 +857,7 @@ export function Dashboard() {
             ))}
           </div>
           <div className="text-xs text-muted-foreground">
-            Datenquelle: Garmin UDS / Sleep / Activities · JSON-Upload · lokal ausgewertet
+            Datenquelle: Garmin · {source?.source === "supabase" ? `Supabase (${source.count} Tage live)` : "lokal (JSON-Fallback)"}
           </div>
         </div>
       </div>
