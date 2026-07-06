@@ -129,7 +129,8 @@ function SleepChart({ days, onSelect }: { days: Day[]; onSelect: (d: Day) => voi
 function StepsChart({ days, onSelect }: { days: Day[]; onSelect: (d: Day) => void }) {
   const data = days.map((d) => ({ date: formatDateShort(d.date), _raw: d, Schritte: d.steps }));
   return (
-    <ResponsiveContainer width="100%" height={260}>
+    <ResponsiveContainer width="100%" height={210}>
+
       <AreaChart
         data={data}
         onClick={(e: any) => e?.activePayload?.[0]?.payload?._raw && onSelect(e.activePayload[0].payload._raw)}
