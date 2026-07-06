@@ -154,32 +154,62 @@ function StepsChart({ days, onSelect }: { days: Day[]; onSelect: (d: Day) => voi
 
 // ---------- Training chapter ----------
 
-function TrainingChart({ days, onSelect }: { days: Day[]; onSelect: (d: Day) => void }) {
-  const data = days.map((d) => ({
-    date: formatDateShort(d.date),
-    _raw: d,
-    Minuten: d.trainingMin,
-    Kalorien: d.workouts.reduce((s, w) => s + w.calories, 0),
-  }));
+const DONUT_COLORS = [ACCENT, ACCENT_2, ACCENT_3, ACCENT_WARN, "hsl(280 70% 65%)", "hsl(340 70% 65%)", "hsl(200 60% 50%)", "hsl(60 70% 60%)"];
+
+function TrainingChart({ days }: { days: Day[]; onSelect?: (d: Day) => void }) {
+  const slices = activityBreakdown(days);
+  const total = slices.reduce((s, x) => s + x.minutes, 0);
+  if (!slices.length) {
+    return (
+      <div className="grid h-[210px] place-items-center text-sm text-muted-foreground">
+        Keine Trainings in diesem Zeitraum
+      </div>
+    );
+  }
   return (
-    <ResponsiveContainer width="100%" height={260}>
-      <BarChart
-        data={data}
-        onClick={(e: any) => e?.activePayload?.[0]?.payload?._raw && onSelect(e.activePayload[0].payload._raw)}
-      >
-        <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-        <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" fontSize={11} />
-        <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} unit=" min" />
-        <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-        <Bar dataKey="Minuten" fill={ACCENT} radius={[4, 4, 0, 0]}>
-          {data.map((d, i) => (
-            <Cell key={i} fill={d.Minuten === 0 ? "rgba(255,255,255,0.06)" : ACCENT} />
-          ))}
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="grid gap-4 sm:grid-cols-[210px_1fr] sm:items-center">
+      <ResponsiveContainer width="100%" height={210}>
+        <PieChart>
+          <Tooltip
+            content={({ active, payload }: any) => {
+              if (!active || !payload?.length) return null;
+              const p = payload[0].payload as { name: string; minutes: number; sessions: number; calories: number };
+              return (
+                <div className="rounded-lg border border-white/10 bg-[#0f1626]/95 px-3 py-2 text-xs shadow-xl">
+                  <div className="font-semibold">{p.name}</div>
+                  <div className="text-muted-foreground">{p.sessions} Sessions · {p.minutes} min</div>
+                  {p.calories > 0 && <div className="text-muted-foreground">{p.calories.toLocaleString("de-DE")} kcal</div>}
+                </div>
+              );
+            }}
+          />
+          <Pie data={slices} dataKey="minutes" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={2} stroke="#0b1220" strokeWidth={2}>
+            {slices.map((_, i) => (
+              <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+            ))}
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+      <ul className="space-y-2 text-xs">
+        {slices.map((s, i) => {
+          const pct = total ? Math.round((s.minutes / total) * 100) : 0;
+          return (
+            <li key={s.name} className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }} />
+                <span className="text-foreground">{s.name}</span>
+              </span>
+              <span className="text-muted-foreground">
+                <span className="font-semibold text-foreground">{s.sessions}×</span> · {s.minutes} min · {pct}%
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
+
 
 // ---------- Day detail popover ----------
 
