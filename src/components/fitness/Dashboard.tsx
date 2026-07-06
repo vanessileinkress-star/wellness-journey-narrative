@@ -401,6 +401,7 @@ const TOUR: TourChapter[] = [
 
 function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
   const [step, setStep] = useState(0);
+  const topRef = useRef<HTMLDivElement>(null);
   const chapter = TOUR[step];
   const days = daysInMonth(chapter.monthKey);
   const stats = computeStats(days);
@@ -413,9 +414,17 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
     : "Solide Basis mit klaren Baustellen. Ein bis zwei gezielte Anpassungen und die Kurve zeigt nach oben.";
   const progress = ((step + 1) / TOUR.length) * 100;
 
+  const goToStep = (i: number) => {
+    setStep(i);
+    // scroll after render
+    requestAnimationFrame(() => {
+      topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
 
   return (
-    <div>
+    <div ref={topRef}>
+
       <div className="mx-auto max-w-6xl px-4 pb-6">
         <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
           <span>Kapitel {step + 1} von {TOUR.length}</span>
