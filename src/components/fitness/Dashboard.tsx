@@ -25,6 +25,7 @@ import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Kettlebell } from "./Kettlebell";
 import {
+  activityBreakdown,
   assessSleep,
   assessSteps,
   assessTraining,
@@ -38,6 +39,7 @@ import {
   MONTHS,
   type Day,
 } from "./data";
+
 
 
 const ACCENT = "hsl(210 90% 62%)";
