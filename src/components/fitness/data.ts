@@ -32,7 +32,12 @@ export interface Day {
   trainingMin: number;
 }
 
-export const DAYS: Day[] = raw as Day[];
+export let DAYS: Day[] = raw as Day[];
+
+export function setDays(next: Day[]) {
+  DAYS = next;
+}
+
 
 export const MONTHS: { key: string; label: string }[] = [
   { key: "2026-01", label: "Januar" },
