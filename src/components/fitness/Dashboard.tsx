@@ -103,7 +103,8 @@ function SleepChart({ days, onSelect }: { days: Day[]; onSelect: (d: Day) => voi
     Wach: Math.round((d.awakeMin / 60) * 10) / 10,
   }));
   return (
-    <ResponsiveContainer width="100%" height={260}>
+    <ResponsiveContainer width="100%" height={210}>
+
       <BarChart
         data={data}
         onClick={(e: any) => e?.activePayload?.[0]?.payload?._raw && onSelect(e.activePayload[0].payload._raw)}
