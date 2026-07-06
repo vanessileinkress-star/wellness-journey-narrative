@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -9,12 +9,15 @@ import {
   Legend,
   Line,
   LineChart,
+  Pie,
+  PieChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
+
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +25,7 @@ import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Kettlebell } from "./Kettlebell";
 import {
+  activityBreakdown,
   assessSleep,
   assessSteps,
   assessTraining,
@@ -35,6 +39,7 @@ import {
   MONTHS,
   type Day,
 } from "./data";
+
 
 
 const ACCENT = "hsl(210 90% 62%)";
@@ -98,7 +103,8 @@ function SleepChart({ days, onSelect }: { days: Day[]; onSelect: (d: Day) => voi
     Wach: Math.round((d.awakeMin / 60) * 10) / 10,
   }));
   return (
-    <ResponsiveContainer width="100%" height={260}>
+    <ResponsiveContainer width="100%" height={210}>
+
       <BarChart
         data={data}
         onClick={(e: any) => e?.activePayload?.[0]?.payload?._raw && onSelect(e.activePayload[0].payload._raw)}
@@ -123,7 +129,8 @@ function SleepChart({ days, onSelect }: { days: Day[]; onSelect: (d: Day) => voi
 function StepsChart({ days, onSelect }: { days: Day[]; onSelect: (d: Day) => void }) {
   const data = days.map((d) => ({ date: formatDateShort(d.date), _raw: d, Schritte: d.steps }));
   return (
-    <ResponsiveContainer width="100%" height={260}>
+    <ResponsiveContainer width="100%" height={210}>
+
       <AreaChart
         data={data}
         onClick={(e: any) => e?.activePayload?.[0]?.payload?._raw && onSelect(e.activePayload[0].payload._raw)}
@@ -147,32 +154,62 @@ function StepsChart({ days, onSelect }: { days: Day[]; onSelect: (d: Day) => voi
 
 // ---------- Training chapter ----------
 
-function TrainingChart({ days, onSelect }: { days: Day[]; onSelect: (d: Day) => void }) {
-  const data = days.map((d) => ({
-    date: formatDateShort(d.date),
-    _raw: d,
-    Minuten: d.trainingMin,
-    Kalorien: d.workouts.reduce((s, w) => s + w.calories, 0),
-  }));
+const DONUT_COLORS = [ACCENT, ACCENT_2, ACCENT_3, ACCENT_WARN, "hsl(280 70% 65%)", "hsl(340 70% 65%)", "hsl(200 60% 50%)", "hsl(60 70% 60%)"];
+
+function TrainingChart({ days }: { days: Day[]; onSelect?: (d: Day) => void }) {
+  const slices = activityBreakdown(days);
+  const total = slices.reduce((s, x) => s + x.minutes, 0);
+  if (!slices.length) {
+    return (
+      <div className="grid h-[210px] place-items-center text-sm text-muted-foreground">
+        Keine Trainings in diesem Zeitraum
+      </div>
+    );
+  }
   return (
-    <ResponsiveContainer width="100%" height={260}>
-      <BarChart
-        data={data}
-        onClick={(e: any) => e?.activePayload?.[0]?.payload?._raw && onSelect(e.activePayload[0].payload._raw)}
-      >
-        <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-        <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" fontSize={11} />
-        <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} unit=" min" />
-        <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-        <Bar dataKey="Minuten" fill={ACCENT} radius={[4, 4, 0, 0]}>
-          {data.map((d, i) => (
-            <Cell key={i} fill={d.Minuten === 0 ? "rgba(255,255,255,0.06)" : ACCENT} />
-          ))}
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="grid gap-4 sm:grid-cols-[210px_1fr] sm:items-center">
+      <ResponsiveContainer width="100%" height={210}>
+        <PieChart>
+          <Tooltip
+            content={({ active, payload }: any) => {
+              if (!active || !payload?.length) return null;
+              const p = payload[0].payload as { name: string; minutes: number; sessions: number; calories: number };
+              return (
+                <div className="rounded-lg border border-white/10 bg-[#0f1626]/95 px-3 py-2 text-xs shadow-xl">
+                  <div className="font-semibold">{p.name}</div>
+                  <div className="text-muted-foreground">{p.sessions} Sessions · {p.minutes} min</div>
+                  {p.calories > 0 && <div className="text-muted-foreground">{p.calories.toLocaleString("de-DE")} kcal</div>}
+                </div>
+              );
+            }}
+          />
+          <Pie data={slices} dataKey="minutes" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={2} stroke="#0b1220" strokeWidth={2}>
+            {slices.map((_, i) => (
+              <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+            ))}
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+      <ul className="space-y-2 text-xs">
+        {slices.map((s, i) => {
+          const pct = total ? Math.round((s.minutes / total) * 100) : 0;
+          return (
+            <li key={s.name} className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }} />
+                <span className="text-foreground">{s.name}</span>
+              </span>
+              <span className="text-muted-foreground">
+                <span className="font-semibold text-foreground">{s.sessions}×</span> · {s.minutes} min · {pct}%
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
+
 
 // ---------- Day detail popover ----------
 
@@ -270,7 +307,7 @@ function ChapterBlock({
               </div>
               <h2 className="mt-3 font-display text-3xl font-bold leading-tight lg:text-4xl">{title}</h2>
             </div>
-            <Kettlebell mood={mood} size={72} className="-mt-2 shrink-0 drop-shadow-[0_6px_20px_rgba(122,183,255,0.25)]" />
+            <Kettlebell mood={mood} size={120} className="-mt-2 shrink-0 drop-shadow-[0_6px_20px_rgba(122,183,255,0.25)]" />
           </div>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{story}</p>
           <div className="mt-6 space-y-3">
@@ -294,7 +331,7 @@ function ChapterBlock({
             )}
           </div>
         </div>
-        <Card className="border-white/10 bg-card/60 p-4 lg:p-6">{chart}</Card>
+        <Card className="self-start border-white/10 bg-card/60 p-4 lg:p-6">{chart}</Card>
       </div>
     </section>
   );
@@ -364,6 +401,7 @@ const TOUR: TourChapter[] = [
 
 function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
   const [step, setStep] = useState(0);
+  const topRef = useRef<HTMLDivElement>(null);
   const chapter = TOUR[step];
   const days = daysInMonth(chapter.monthKey);
   const stats = computeStats(days);
@@ -376,9 +414,17 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
     : "Solide Basis mit klaren Baustellen. Ein bis zwei gezielte Anpassungen und die Kurve zeigt nach oben.";
   const progress = ((step + 1) / TOUR.length) * 100;
 
+  const goToStep = (i: number) => {
+    setStep(i);
+    // scroll after render
+    requestAnimationFrame(() => {
+      topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
 
   return (
-    <div>
+    <div ref={topRef}>
+
       <div className="mx-auto max-w-6xl px-4 pb-6">
         <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
           <span>Kapitel {step + 1} von {TOUR.length}</span>
@@ -391,7 +437,7 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
           {TOUR.map((c, i) => (
             <button
               key={c.id}
-              onClick={() => setStep(i)}
+              onClick={() => goToStep(i)}
               className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                 i === step
                   ? "border-primary bg-primary text-primary-foreground"
@@ -472,13 +518,14 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
 
 
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-8">
-        <Button variant="outline" disabled={step === 0} onClick={() => setStep((s) => Math.max(0, s - 1))}>
+        <Button variant="outline" disabled={step === 0} onClick={() => goToStep(Math.max(0, step - 1))}>
           ← Zurück
         </Button>
         <div className="text-sm text-muted-foreground">
           {step === TOUR.length - 1 ? "Ende der geführten Tour – wechsle in den Explorer, um selbst zu stöbern." : "Weiter in der Story"}
         </div>
-        <Button disabled={step === TOUR.length - 1} onClick={() => setStep((s) => Math.min(TOUR.length - 1, s + 1))}>
+        <Button disabled={step === TOUR.length - 1} onClick={() => goToStep(Math.min(TOUR.length - 1, step + 1))}>
+
           Weiter →
         </Button>
       </div>
@@ -799,9 +846,48 @@ export function Dashboard() {
 
       <Achievements />
 
+      {/* DSGVO */}
+      <section className="mx-auto max-w-6xl px-4 pb-16">
+        <Card className="border-primary/20 bg-primary/5 p-6 lg:p-8">
+          <div className="grid gap-6 lg:grid-cols-[1fr_2fr] lg:items-start">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.25em] text-primary">Datenschutz · DSGVO</div>
+              <h2 className="mt-2 font-display text-2xl font-bold">Deine Daten. Deine Kontrolle.</h2>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Diese Auswertung entsteht im Rahmen der Prüfungsleistung an der THWS Würzburg.
+                Alle Daten stammen aus Vanessas eigenem Garmin-Tracker – kein Fremd-Tracking, keine Weitergabe.
+              </p>
+            </div>
+            <ul className="space-y-3 text-sm">
+              <li className="flex gap-3">
+                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                <span><span className="font-semibold text-foreground">Zweckbindung (Art. 5 DSGVO):</span> Die Daten werden ausschließlich für die Visualisierung im Rahmen dieses Studienprojekts verwendet.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                <span><span className="font-semibold text-foreground">Datenminimierung:</span> Es werden nur aggregierte Fitness- und Gesundheitswerte verarbeitet – keine Namen, Adressen oder Kontaktdaten Dritter.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                <span><span className="font-semibold text-foreground">Einwilligung:</span> Die Verarbeitung erfolgt auf Basis meiner eigenen Einwilligung als betroffene Person (Art. 6 Abs. 1 lit. a).</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                <span><span className="font-semibold text-foreground">Keine Weitergabe:</span> Die Daten werden nicht an Dritte übermittelt und nicht für Werbezwecke genutzt.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                <span><span className="font-semibold text-foreground">Löschung:</span> Nach Abschluss und Bewertung des Moduls können alle Daten auf Wunsch vollständig entfernt werden (Art. 17 DSGVO).</span>
+              </li>
+            </ul>
+          </div>
+        </Card>
+      </section>
+
       <footer className="border-t border-white/5 py-8 text-center text-xs text-muted-foreground">
         THWS Würzburg · Medienmanagement · Modul Interaktive Medien · Datenauswertung Vanessa Kressar
       </footer>
+
 
       <DayDetail day={dayDetail} onClose={() => setDayDetail(null)} />
     </main>

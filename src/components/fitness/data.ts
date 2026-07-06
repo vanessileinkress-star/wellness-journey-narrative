@@ -185,6 +185,55 @@ export function assessTraining(days: Day[]): Assessment {
   };
 }
 
+// ---------- Aktivitäts-Breakdown für Donut ----------
+
+const TYPE_LABELS: Record<string, string> = {
+  strength_training: "Krafttraining 🏋️",
+  cycling: "Rad 🚴",
+  gravel_cycling: "Gravel 🚴",
+  road_biking: "Rennrad 🚴",
+  mountain_biking: "MTB 🚵",
+  running: "Laufen 🏃",
+  treadmill_running: "Laufband 🏃",
+  hiit: "HIIT 🔥",
+  cardio: "Cardio 💪",
+  walking: "Gehen 👟",
+  hiking: "Wandern 🥾",
+  yoga: "Yoga 🧘",
+  pilates: "Pilates 🧘",
+  swimming: "Schwimmen 🏊",
+  other: "Sonstiges ✨",
+};
+
+function normalizeType(t: string): string {
+  const key = (t || "other").toLowerCase().replace(/\s+/g, "_");
+  return TYPE_LABELS[key] ?? (key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " "));
+}
+
+export interface ActivitySlice {
+  name: string;
+  minutes: number;
+  sessions: number;
+  calories: number;
+}
+
+export function activityBreakdown(days: Day[]): ActivitySlice[] {
+  const map = new Map<string, ActivitySlice>();
+  for (const d of days) {
+    for (const w of d.workouts) {
+      const name = normalizeType(w.type);
+      const cur = map.get(name) ?? { name, minutes: 0, sessions: 0, calories: 0 };
+      cur.minutes += w.durationMin;
+      cur.sessions += 1;
+      cur.calories += w.calories;
+      map.set(name, cur);
+    }
+  }
+  return Array.from(map.values()).sort((a, b) => b.minutes - a.minutes);
+}
+
+
+
 
 
 export function computeAchievements(days: Day[]) {
