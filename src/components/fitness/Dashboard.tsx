@@ -437,7 +437,7 @@ function TourView({ onSelectDay }: { onSelectDay: (d: Day) => void }) {
           {TOUR.map((c, i) => (
             <button
               key={c.id}
-              onClick={() => setStep(i)}
+              onClick={() => goToStep(i)}
               className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                 i === step
                   ? "border-primary bg-primary text-primary-foreground"
