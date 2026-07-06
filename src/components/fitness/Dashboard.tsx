@@ -857,7 +857,7 @@ export function Dashboard() {
             ))}
           </div>
           <div className="text-xs text-muted-foreground">
-            Datenquelle: Garmin UDS / Sleep / Activities · JSON-Upload · lokal ausgewertet
+            Datenquelle: Garmin · {source?.source === "supabase" ? `Supabase (${source.count} Tage live)` : "lokal (JSON-Fallback)"}
           </div>
         </div>
       </div>
