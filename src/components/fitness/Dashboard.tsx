@@ -40,8 +40,26 @@ import {
   formatDateShort,
   formatSleep,
   MONTHS,
+  setDays,
   type Day,
 } from "./data";
+
+// Läd Daten aus Vanessas Supabase-Projekt; fällt zurück auf gebündeltes JSON.
+function useFitnessSource() {
+  return useQuery({
+    queryKey: ["fitness_days"],
+    queryFn: async () => {
+      const remote = await fetchFitnessDays();
+      if (remote && remote.length > 0) {
+        setDays(remote);
+        return { source: "supabase" as const, count: remote.length };
+      }
+      return { source: "local" as const, count: DAYS.length };
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
 
 
 
