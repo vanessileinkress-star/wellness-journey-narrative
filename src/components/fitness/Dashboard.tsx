@@ -331,7 +331,7 @@ function ChapterBlock({
             )}
           </div>
         </div>
-        <Card className="border-white/10 bg-card/60 p-4 lg:p-6">{chart}</Card>
+        <Card className="self-start border-white/10 bg-card/60 p-4 lg:p-6">{chart}</Card>
       </div>
     </section>
   );
