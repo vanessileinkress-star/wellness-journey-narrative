@@ -776,8 +776,11 @@ function Achievements() {
 export function Dashboard() {
   const [mode, setMode] = useState<"tour" | "explorer" | "compare">("tour");
   const [dayDetail, setDayDetail] = useState<Day | null>(null);
-  const overallStats = useMemo(() => computeStats(DAYS), []);
+  const { data: source } = useFitnessSource();
+  const overallStats = useMemo(() => computeStats(DAYS), [source]);
   const last = DAYS[DAYS.length - 1];
+
+
 
   return (
     <main className="min-h-screen bg-background text-foreground">
