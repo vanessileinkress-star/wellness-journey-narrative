@@ -307,7 +307,7 @@ function ChapterBlock({
               </div>
               <h2 className="mt-3 font-display text-3xl font-bold leading-tight lg:text-4xl">{title}</h2>
             </div>
-            <Kettlebell mood={mood} size={72} className="-mt-2 shrink-0 drop-shadow-[0_6px_20px_rgba(122,183,255,0.25)]" />
+            <Kettlebell mood={mood} size={120} className="-mt-2 shrink-0 drop-shadow-[0_6px_20px_rgba(122,183,255,0.25)]" />
           </div>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{story}</p>
           <div className="mt-6 space-y-3">
