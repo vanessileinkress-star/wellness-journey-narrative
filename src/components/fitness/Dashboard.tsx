@@ -818,8 +818,7 @@ export function Dashboard() {
               Vanessas Tracking-Story
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground lg:text-base">
-              161 Tage Selbsttracking mit Garmin – Schlaf, Alltag und Training in einer geführten Reise oder als
-              freies Explorer-Board. Alle Daten liegen lokal in der App, keine Weitergabe an Dritte (DSGVO-konform).
+              Ein Überblick über 161 Tage persönliches Tracking – Schlaf, Bewegung und Training kompakt zusammengefasst.
             </p>
             <div className="mt-6 grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
               <StatCard label="Tage" value={`${overallStats.daysCount}`} />
