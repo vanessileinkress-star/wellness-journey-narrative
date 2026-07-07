@@ -30,17 +30,18 @@ jobs:
       - name: Build (SPA for GitHub Pages)
         run: bun run build
         env:
-          # Nitro reads this to select its build target.
-          NITRO_PRESET: static
+          # Signals vite.config.ts to disable Nitro so the build produces a
+          # pure static SPA (no Cloudflare Worker output, no SSR runtime).
+          GITHUB_PAGES: "1"
 
       - name: Prepare Pages output
         run: |
           set -e
-          # TanStack Start + Nitro (static preset) emits the client bundle here.
-          OUT_DIR=".output/public"
-          if [ ! -d "$OUT_DIR" ]; then
-            # Fallback if the plugin changes the output location.
-            if [ -d "dist" ]; then OUT_DIR="dist"; fi
+          OUT_DIR="dist/client"
+          if [ ! -f "$OUT_DIR/index.html" ]; then
+            echo "Expected $OUT_DIR/index.html, but it is missing." >&2
+            ls -la dist || true
+            exit 1
           fi
           echo "Publishing $OUT_DIR"
           # SPA fallback: GitHub Pages serves 404.html for unknown paths,
