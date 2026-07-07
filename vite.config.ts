@@ -26,10 +26,8 @@ export default defineConfig({
     },
     pages: [{ path: "/" }],
   },
-  // On GitHub Pages we don't want any nitro server runtime — the client
-  // bundle + prerendered index.html are enough. Locally / in Lovable we
-  // keep the default Cloudflare worker output.
-  nitro: IS_GH_PAGES
-    ? { preset: "static", output: { publicDir: "dist/client" } }
-    : undefined,
+  // On GitHub Pages we skip Nitro entirely. TanStack Start's own SPA prerender
+  // step produces `dist/client/index.html`, which is the whole static site.
+  // Locally / in the Lovable preview we keep the default Nitro (Cloudflare) build.
+  nitro: IS_GH_PAGES ? false : undefined,
 });
