@@ -908,7 +908,7 @@ export function Dashboard() {
       </section>
 
       <footer className="border-t border-white/5 py-8 text-center text-xs text-muted-foreground">
-        THWS Würzburg · Medienmanagement · Modul Interaktive Medien · Datenauswertung Vanessa Kressar
+        THWS Würzburg · Medienmanagement · Modul Interaktive Medien · Datenauswertung Vanessa Kreß
       </footer>
 
 
